@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supply Chain 4.0</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh; padding: 20px; }
+        .container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); max-width: 900px; width: 100%; margin: 0 auto; padding: 30px; }
+        h1 { color: #1e3c72; text-align: center; margin-bottom: 10px; font-size: 2em; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 0.9em; }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .btn { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.1em; cursor: pointer; width: 100%; margin-top: 20px; font-weight: bold; transition: transform 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .btn.secondary { background: #6c757d; }
+        .input-group { margin: 20px 0; }
+        .input-group label { display: block; color: #333; font-weight: bold; margin-bottom: 8px; }
+        .input-group input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1.1em; }
+        .input-group input:focus { outline: none; border-color: #1e3c72; }
+        .room-code-display { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 15px; text-align: center; margin: 20px 0; font-size: 1.5em; font-weight: bold; letter-spacing: 3px; }
+        .team-card { background: #f8f9fa; border: 2px solid #ddd; border-radius: 15px; padding: 20px; margin: 15px 0; cursor: pointer; transition: all 0.3s; }
+        .team-card:hover { border-color: #1e3c72; transform: translateY(-3px); }
+        .team-card.selected { border-color: #1e3c72; background: #e3f2fd; }
+        .team-name { font-size: 1.3em; font-weight: bold; color: #1e3c72; margin-bottom: 10px; }
+        .voting-section { background: #f8f9fa; padding: 20px; border-radius: 15px; margin: 20px 0; }
+        .vote-option { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border: 2px solid #ddd; border-radius: 10px; margin: 10px 0; cursor: pointer; transition: all 0.3s; }
+        .vote-option:hover { border-color: #1e3c72; }
+        .vote-option.selected { border-color: #1e3c72; background: #e3f2fd; }
+        .vote-count { background: #1e3c72; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+        .leaderboard { background: #f8f9fa; padding: 20px; border-radius: 15px; margin: 20px 0; }
+        .leaderboard h3 { color: #1e3c72; margin-bottom: 15px; text-align: center; }
+        .leaderboard-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: white; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ccc; }
+        .leaderboard-item.first { border-left-color: #ffd700; background: linear-gradient(90deg, #fffbea 0%, white 100%); }
+        .rank { font-size: 1.5em; font-weight: bold; color: #1e3c72; min-width: 40px; }
+        .score { font-size: 1.3em; font-weight: bold; color: #4caf50; }
+        .info-box { background: #e3f2fd; padding: 15px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #1e3c72; }
+        .info-box h4 { color: #1e3c72; margin-bottom: 8px; }
+        .player-chip { display: inline-block; background: #e3f2fd; color: #1e3c72; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; margin: 5px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 20px 0; }
+        .stat-card { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 12px; border-radius: 10px; text-align: center; }
+        .stat-label { font-size: 0.75em; color: #666; margin-bottom: 5px; font-weight: 600; }
+        .stat-value { font-size: 1.5em; font-weight: bold; color: #1e3c72; }
+        .budget-bar { background: #e0e0e0; height: 30px; border-radius: 15px; margin: 20px 0; overflow: hidden; }
+        .budget-fill { background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9em; transition: width 0.3s; }
+        .scenario { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #1e3c72; }
+        .scenario h3 { color: #333; margin-bottom: 10px; }
+        .scenario p { color: #666; line-height: 1.6; margin-bottom: 15px; }
+        .options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .option-btn { background: white; border: 2px solid #1e3c72; color: #333; padding: 15px; border-radius: 10px; cursor: pointer; text-align: left; font-size: 0.95em; transition: all 0.3s; }
+        .option-btn:hover:not(:disabled) { background: #e3f2fd; transform: translateX(5px); }
+        .option-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .option-cost { display: inline-block; background: #e3f2fd; color: #1976d2; padding: 3px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold; margin-left: 8px; }
+        .feedback { margin-top: 15px; padding: 15px; border-radius: 10px; display: none; }
+        .feedback.show { display: block; }
+        .feedback.best { background: #e8f5e9; border-left: 4px solid #4caf50; color: #2e7d32; }
+        .feedback.good { background: #fff9c4; border-left: 4px solid #fbc02d; color: #f57f17; }
+        .feedback.poor { background: #ffebee; border-left: 4px solid #f44336; color: #c62828; }
+        .loading { text-align: center; padding: 40px; color: #1e3c72; }
+        @media (max-width: 600px) { .container { padding: 20px; } h1 { font-size: 1.5em; } .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading-screen" class="loading">
+            <h2>⏳ Cargando Firebase...</h2>
+            <p>Por favor espera</p>
+        </div>
+
+        <div id="entry-screen" class="screen">
+            <h1>🏭 Supply Chain 4.0</h1>
+            <p class="subtitle">Modo Multijugador</p>
+            <div class="info-box">
+                <h4>🎮 ¿Cómo funciona?</h4>
+                <p>1. Crea sala o únete<br>2. Forma equipo<br>3. Voten dificultad<br>4. ¡Compitan!</p>
+            </div>
+            <div class="grid-2">
+                <button class="btn" onclick="showCreateRoom()">Crear Sala</button>
+                <button class="btn secondary" onclick="showJoinRoom()">Unirse</button>
+            </div>
+            <div id="create-room-form" style="display: none;">
+                <div class="input-group"><label>Nombre Sala:</label><input type="text" id="room-name-input" placeholder="Logística 101"></div>
+                <div class="input-group"><label>Tu Nombre:</label><input type="text" id="host-name-input" placeholder="Tu nombre"></div>
+                <button class="btn" onclick="createRoom()">Crear</button>
+            </div>
+            <div id="join-room-form" style="display: none;">
+                <div class="input-group"><label>Código:</label><input type="text" id="room-code-input" placeholder="ABC123" style="text-transform: uppercase;" maxlength="6"></div>
+                <div class="input-group"><label>Tu Nombre:</label><input type="text" id="player-name-input" placeholder="Tu nombre"></div>
+                <button class="btn" onclick="joinRoom()">Unirse</button>
+            </div>
+        </div>
+
+        <div id="lobby-screen" class="screen">
+            <h1>Sala: <span id="lobby-room-name">...</span></h1>
+            <div class="room-code-display">CÓDIGO: <span id="room-code-display">...</span></div>
+            <div class="info-box"><h4>📱 Compartir</h4><p>Comparte el código con tu equipo</p></div>
+            <div id="pre-team-section">
+                <h3 style="color: #1e3c72; margin: 20px 0;">Jugadores:</h3>
+                <div id="players-waiting-list"></div>
+                <div class="input-group"><label>Nombre Equipo:</label><input type="text" id="team-name-input" placeholder="Los Logísticos"></div>
+                <button class="btn" onclick="createTeam()">Crear Equipo</button>
+                <div style="margin-top: 30px;"><h3 style="color: #1e3c72;">Equipos:</h3><div id="teams-list"></div></div>
+            </div>
+            <div id="team-formed-section" style="display: none;">
+                <h3 style="color: #1e3c72; margin: 20px 0;">Tu equipo: <span id="my-team-name"></span></h3>
+                <div class="team-card"><div id="my-team-members"></div></div>
+                <div class="voting-section">
+                    <h3 style="color: #1e3c72; margin-bottom: 15px;">🗳️ Vota</h3>
+                    <div class="vote-option" onclick="vote('easy')"><div><strong>😊 Principiante</strong><br><span style="font-size: 0.9em; color: #666;">$800K</span></div><div class="vote-count" id="votes-easy">0</div></div>
+                    <div class="vote-option" onclick="vote('normal')"><div><strong>🎯 Normal</strong><br><span style="font-size: 0.9em; color: #666;">$600K</span></div><div class="vote-count" id="votes-normal">0</div></div>
+                    <div class="vote-option" onclick="vote('hard')"><div><strong>🔥 Experto</strong><br><span style="font-size: 0.9em; color: #666;">$400K</span></div><div class="vote-count" id="votes-hard">0</div></div>
+                </div>
+                <div class="info-box" id="waiting-message"><h4>⏳ Esperando...</h4></div>
+                <button class="btn" id="start-game-btn" onclick="startMultiplayerGame()" style="display: none;">¡Comenzar!</button>
+            </div>
+            <div class="leaderboard"><h3>📊 Equipos</h3><div id="all-teams-list"></div></div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <h1>Supply Chain 4.0</h1>
+            <p class="subtitle">Equipo: <span id="playing-team-name"></span></p>
+            <div class="budget-bar"><div id="budget-fill" class="budget-fill">$<span id="budget-text">600</span>K</div></div>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-label">⚡ Eficiencia</div><div id="efficiency" class="stat-value">65%</div></div>
+                <div class="stat-card"><div class="stat-label">💰 Costos</div><div id="costs" class="stat-value">$450K</div></div>
+                <div class="stat-card"><div class="stat-label">😊 Satisfacción</div><div id="satisfaction" class="stat-value">72%</div></div>
+                <div class="stat-card"><div class="stat-label">🌱 Sostenibilidad</div><div id="sustainability" class="stat-value">60%</div></div>
+            </div>
+            <div id="scenario-container"></div>
+        </div>
+
+        <div id="results-screen" class="screen">
+            <h1>🏆 Resultados</h1>
+            <div class="info-box"><h4>Equipo: <span id="results-team-name"></span></h4><p style="font-size: 1.3em; color: #1e3c72; font-weight: bold; margin-top: 10px;">Puntos: <span id="results-team-score"></span></p></div>
+            <div class="leaderboard"><h3>🏆 Clasificación</h3><div id="final-leaderboard"></div></div>
+            <button class="btn" onclick="backToLobby()">Volver</button>
+            <button class="btn secondary" onclick="location.reload()">Nueva Sala</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script>
+        let db, currentRoom, currentPlayer, currentTeam, roomListener;
+        const scenarios = [
+            {title: "🚚 Crisis Suez", company: "2021", description: "Productos varados. ¿Qué haces?", options: [
+                {text: "IoT + IA rutas", cost: 80, impacts: {efficiency: 15, costs: -40, satisfaction: 12, sustainability: -5}, quality: "best", feedback: "¡Excelente!", points: 25},
+                {text: "Avión", cost: 150, impacts: {efficiency: -10, costs: 80, satisfaction: 8, sustainability: -20}, quality: "poor", feedback: "Costoso", points: 5},
+                {text: "Esperar", cost: 20, impacts: {efficiency: -8, costs: -10, satisfaction: -5, sustainability: 5}, quality: "good", feedback: "Honesto", points: 15}
+            ]},
+            {title: "📊 IA", company: "Amazon", description: "¿Inventario?", options: [
+                {text: "IA + Big Data", cost: 90, impacts: {efficiency: 20, costs: -60, satisfaction: 15, sustainability: 8}, quality: "best", feedback: "94% precisión", points: 25},
+                {text: "Año pasado", cost: 10, impacts: {efficiency: -5, costs: 15, satisfaction: -8, sustainability: -10}, quality: "poor", feedback: "Obsoleto", points: 5}
+            ]},
+            {title: "⛓️ Blockchain", company: "Walmart", description: "Certificación ética", options: [
+                {text: "Blockchain", cost: 85, impacts: {efficiency: 10, costs: -30, satisfaction: 20, sustainability: 18}, quality: "best", feedback: "Transparencia", points: 25},
+                {text: "PDFs", cost: 15, impacts: {efficiency: -5, costs: 10, satisfaction: -8, sustainability: -5}, quality: "poor", feedback: "No confiable", points: 5}
+            ]}
+        ];
+        let gameState = {currentScenario: 0, efficiency: 65, costs: 450, satisfaction: 72, sustainability: 60, budget: 600, maxBudget: 600, score: 0};
+
+        function initApp() {
+            try {
+                if (typeof firebase === 'undefined') {
+                    document.getElementById('loading-screen').innerHTML = '<h2 style="color: red;">❌ Error: Firebase no cargó</h2><p>Recarga la página</p>';
+                    return;
+                }
+                firebase.initializeApp({
+                    apiKey: "AIzaSyDIUt20W8U7cUDqyfLYxqrs2-pNwTodvi4",
+                    authDomain: "supply-chain-game-f1bc4.firebaseapp.com",
+                    databaseURL: "https://supply-chain-game-f1bc4-default-rtdb.firebaseio.com",
+                    projectId: "supply-chain-game-f1bc4",
+                    storageBucket: "supply-chain-game-f1bc4.firebasestorage.app",
+                    messagingSenderId: "992566402291",
+                    appId: "1:992566402291:web:3a699f86b04cca816eab86"
+                });
+                db = firebase.database();
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('entry-screen').classList.add('active');
+                console.log('✅ Firebase OK');
+            } catch (e) {
+                document.getElementById('loading-screen').innerHTML = '<h2 style="color: red;">❌ Error: ' + e.message + '</h2><p>Recarga</p>';
+            }
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(initApp, 500);
+        });
+
+        function showCreateRoom() { document.getElementById('create-room-form').style.display = 'block'; document.getElementById('join-room-form').style.display = 'none'; }
+        function showJoinRoom() { document.getElementById('join-room-form').style.display = 'block'; document.getElementById('create-room-form').style.display = 'none'; }
+
+        function createRoom() {
+            const roomName = document.getElementById('room-name-input').value.trim();
+            const hostName = document.getElementById('host-name-input').value.trim();
+            if (!roomName || !hostName) { alert('Completa campos'); return; }
+            const roomCode = generateRoomCode();
+            currentPlayer = {name: hostName, id: generateId()};
+            currentRoom = {code: roomCode, name: roomName, host: currentPlayer.id, players: {}, teams: {}, votes: {}, difficulty: null, status: 'lobby', createdAt: Date.now()};
+            currentRoom.players[currentPlayer.id] = currentPlayer;
+            db.ref('rooms/' + roomCode).set(currentRoom).then(() => { listenToRoom(roomCode); showLobby(); }).catch(err => alert('Error: ' + err.message));
+        }
+
+        function joinRoom() {
+            const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
+            const playerName = document.getElementById('player-name-input').value.trim();
+            if (!roomCode || !playerName) { alert('Completa campos'); return; }
+            currentPlayer = {name: playerName, id: generateId()};
+            db.ref('rooms/' + roomCode).once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    currentRoom = snapshot.val();
+                    db.ref('rooms/' + roomCode + '/players/' + currentPlayer.id).set(currentPlayer).then(() => { listenToRoom(roomCode); showLobby(); });
+                } else alert('Código no existe');
+            }).catch(err => alert('Error: ' + err.message));
+        }
+
+        function createTeam() {
+            const teamName = document.getElementById('team-name-input').value.trim();
+            if (!teamName) { alert('Nombre equipo'); return; }
+            const teamId = generateId();
+            currentTeam = {id: teamId, name: teamName, members: [currentPlayer.id], status: 'waiting', score: 0, createdAt: Date.now()};
+            db.ref('rooms/' + currentRoom.code + '/teams/' + teamId).set(currentTeam).then(() => {
+                document.getElementById('pre-team-section').style.display = 'none';
+                document.getElementById('team-formed-section').style.display = 'block';
+            });
+        }
+
+        function joinTeam(teamId) {
+            const team = currentRoom.teams[teamId];
+            if (team && !team.members.includes(currentPlayer.id)) {
+                team.members.push(currentPlayer.id);
+                currentTeam = team;
+                db.ref('rooms/' + currentRoom.code + '/teams/' + teamId + '/members').set(team.members).then(() => {
+                    document.getElementById('pre-team-section').style.display = 'none';
+                    document.getElementById('team-formed-section').style.display = 'block';
+                });
+            }
+        }
+
+        function vote(difficulty) {
+            if (!currentTeam || (currentRoom.votes && currentRoom.votes[currentTeam.id])) return;
+            db.ref('rooms/' + currentRoom.code + '/votes/' + currentTeam.id).set(difficulty);
+        }
+
+        function startMultiplayerGame() {
+            const difficulties = {easy: {budget: 800}, normal: {budget: 600}, hard: {budget: 400}};
+            gameState.budget = difficulties[currentRoom.difficulty].budget;
+            gameState.maxBudget = gameState.budget;
+            db.ref('rooms/' + currentRoom.code + '/teams/' + currentTeam.id + '/status').set('playing');
+            showGame();
+        }
+
+        function selectOption(scenarioIndex, optionIndex) {
+            const scenario = scenarios[scenarioIndex];
+            const option = scenario.options[optionIndex];
+            if (option.cost > gameState.budget) return;
+            document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+            gameState.budget -= option.cost;
+            Object.keys(option.impacts).forEach(key => gameState[key] += option.impacts[key]);
+            gameState.score += option.points;
+            updateStats();
+            const feedbackDiv = document.getElementById('feedback');
+            feedbackDiv.className = 'feedback show ' + option.quality;
+            feedbackDiv.innerHTML = `<strong>${option.quality === 'best' ? '🌟 ¡Excelente!' : option.quality === 'good' ? '✅ Buena' : '⚠️ Subóptima'}</strong><p>${option.feedback}</p><p><strong>+${option.points}</strong></p>`;
+            setTimeout(() => feedbackDiv.innerHTML += `<button class="btn" onclick="nextScenario()">${scenarioIndex < scenarios.length - 1 ? 'Siguiente ➡️' : 'Resultados 🏆'}</button>`, 1000);
+        }
+
+        function nextScenario() { loadScenario(gameState.currentScenario + 1); }
+        function backToLobby() { document.getElementById('results-screen').classList.remove('active'); document.getElementById('lobby-screen').classList.add('active'); updateLobby(); }
+
+        function listenToRoom(roomCode) {
+            roomListener = db.ref('rooms/' + roomCode).on('value', snapshot => {
+                if (snapshot.exists()) { currentRoom = snapshot.val(); updateLobby(); checkIfAllVoted(); }
+            });
+        }
+
+        function checkIfAllVoted() {
+            if (!currentRoom || !currentRoom.teams) return;
+            const allTeams = Object.values(currentRoom.teams);
+            if (allTeams.length === 0) return;
+            const allVoted = allTeams.every(team => currentRoom.votes && currentRoom.votes[team.id]);
+            if (allVoted && !currentRoom.difficulty) {
+                const voteCounts = {easy: 0, normal: 0, hard: 0};
+                Object.values(currentRoom.votes).forEach(vote => voteCounts[vote]++);
+                let winningDifficulty = 'normal', maxVotes = 0;
+                Object.entries(voteCounts).forEach(([diff, count]) => { if (count > maxVotes) { maxVotes = count; winningDifficulty = diff; }});
+                db.ref('rooms/' + currentRoom.code + '/difficulty').set(winningDifficulty);
+            }
+            if (currentRoom.difficulty && currentTeam) {
+                document.getElementById('waiting-message').style.display = 'none';
+                document.getElementById('start-game-btn').style.display = 'block';
+            }
+        }
+
+        function showLobby() {
+            document.getElementById('entry-screen').classList.remove('active');
+            document.getElementById('lobby-screen').classList.add('active');
+            document.getElementById('lobby-room-name').textContent = currentRoom.name;
+            document.getElementById('room-code-display').textContent = currentRoom.code;
+            updateLobby();
+        }
+
+        function updateLobby() {
+            if (!currentRoom) return;
+            const playersWithoutTeam = Object.values(currentRoom.players || {}).filter(player => !Object.values(currentRoom.teams || {}).some(team => team.members && team.members.includes(player.id)));
+            let playersHTML = '';
+            playersWithoutTeam.forEach(player => playersHTML += `<span class="player-chip">${player.name}</span>`);
+            document.getElementById('players-waiting-list').innerHTML = playersHTML || '<p style="color: #666;">Todos en equipos</p>';
+            let teamsHTML = '';
+            Object.values(currentRoom.teams || {}).forEach(team => {
+                const isMyTeam = currentTeam && currentTeam.id === team.id;
+                const canJoin = !isMyTeam && currentPlayer && !team.members.includes(currentPlayer.id);
+                teamsHTML += `<div class="team-card ${isMyTeam ? 'selected' : ''}" ${canJoin ? `onclick="joinTeam('${team.id}')"` : ''}><div class="team-name">${team.name} ${isMyTeam ? '✓' : ''}</div><div style="color: #666;">${team.members.length} miembro(s)</div></div>`;
+            });
+            document.getElementById('teams-list').innerHTML = teamsHTML || '<p style="color: #666;">No hay equipos</p>';
+            if (currentTeam && currentRoom.teams && currentRoom.teams[currentTeam.id]) {
+                const updatedTeam = currentRoom.teams[currentTeam.id];
+                document.getElementById('my-team-name').textContent = updatedTeam.name;
+                let membersHTML = '';
+                updatedTeam.members.forEach(memberId => { const member = currentRoom.players[memberId]; if (member) membersHTML += `<span class="player-chip">${member.name}</span>`; });
+                document.getElementById('my-team-members').innerHTML = membersHTML;
+            }
+            let allTeamsHTML = '';
+            Object.values(currentRoom.teams || {}).forEach(team => {
+                allTeamsHTML += `<div class="leaderboard-item"><div class="rank">${team.members.length}</div><div style="flex: 1; margin: 0 15px;"><strong>${team.name}</strong></div>${team.score > 0 ? `<div class="score">${team.score}</div>` : '<div style="color: #999;">---</div>'}</div>`;
+            });
+            document.getElementById('all-teams-list').innerHTML = allTeamsHTML || '<p style="text-align: center; color: #666;">Sin equipos</p>';
+            if (!currentRoom || !currentRoom.votes) return;
+            const voteCounts = {easy: 0, normal: 0, hard: 0};
+            Object.values(currentRoom.votes).forEach(vote => voteCounts[vote]++);
+            document.getElementById('votes-easy').textContent = voteCounts.easy;
+            document.getElementById('votes-normal').textContent = voteCounts.normal;
+            document.getElementById('votes-hard').textContent = voteCounts.hard;
+        }
+
+        function showGame() {
+            document.getElementById('lobby-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            document.getElementById('playing-team-name').textContent = currentTeam.name;
+            updateStats();
+            loadScenario(0);
+        }
+
+        function loadScenario(index) {
+            if (index >= scenarios.length) { endGame(); return; }
+            gameState.currentScenario = index;
+            const scenario = scenarios[index];
+            let html = `<div class="scenario"><h3>${scenario.title}</h3><p style="color: #666;">${scenario.company}</p><p>${scenario.description}</p><div class="options">`;
+            scenario.options.forEach((option, i) => {
+                const disabled = option.cost > gameState.budget ? 'disabled' : '';
+                html += `<button class="option-btn" onclick="selectOption(${index}, ${i})" ${disabled}>${option.text}<span class="option-cost">$${option.cost}K</span></button>`;
+            });
+            html += `</div><div id="feedback" class="feedback"></div></div>`;
+            document.getElementById('scenario-container').innerHTML = html;
+        }
+
+        function updateStats() {
+            gameState.efficiency = Math.max(0, Math.min(100, gameState.efficiency));
+            gameState.satisfaction = Math.max(0, Math.min(100, gameState.satisfaction));
+            gameState.sustainability = Math.max(0, Math.min(100, gameState.sustainability));
+            document.getElementById('efficiency').textContent = Math.round(gameState.efficiency) + '%';
+            document.getElementById('costs').textContent = '$' + gameState.costs + 'K';
+            document.getElementById('satisfaction').textContent = Math.round(gameState.satisfaction) + '%';
+            document.getElementById('sustainability').textContent = Math.round(gameState.sustainability) + '%';
+            document.getElementById('budget-text').textContent = gameState.budget;
+            document.getElementById('budget-fill').style.width = ((gameState.budget / gameState.maxBudget) * 100) + '%';
+        }
+
+        function endGame() {
+            const avgMetrics = (gameState.efficiency + gameState.satisfaction + gameState.sustainability) / 3;
+            const finalScore = Math.round(gameState.score + avgMetrics);
+            db.ref('rooms/' + currentRoom.code + '/teams/' + currentTeam.id).update({score: finalScore, status: 'finished'}).then(() => showResults());
+        }
+
+        function showResults() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('results-screen').classList.add('active');
+            document.getElementById('results-team-name').textContent = currentTeam.name;
+            db.ref('rooms/' + currentRoom.code + '/teams/' + currentTeam.id + '/score').once('value').then(snapshot => {
+                document.getElementById('results-team-score').textContent = (snapshot.val() || 0) + ' pts';
+            });
+            db.ref('rooms/' + currentRoom.code + '/teams').once('value').then(snapshot => {
+                const teams = snapshot.val() || {};
+                const sortedTeams = Object.values(teams).filter(team => team.status === 'finished').sort((a, b) => (b.score || 0) - (a.score || 0));
+                let html = '';
+                sortedTeams.forEach((team, index) => {
+                    const rankClass = index === 0 ? 'first' : '';
+                    const medal = ['🥇', '🥈', '🥉'][index] || (index + 1);
+                    html += `<div class="leaderboard-item ${rankClass}"><div class="rank">${medal}</div><div style="flex: 1; margin: 0 15px;"><strong>${team.name}</strong></div><div class="score">${team.score || 0}</div></div>`;
+                });
+                document.getElementById('final-leaderboard').innerHTML = html || '<p style="text-align: center; color: #666;">Sin resultados</p>';
+            });
+        }
+
+        function generateRoomCode() { const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let code = ''; for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length)); return code; }
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+    </script>
+</body>
+</html>
